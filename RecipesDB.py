@@ -1,5 +1,6 @@
 import sqlite3
 
+
 class RecipesDB:
     def __init__(self, db_name="my_recipes.db"):
         self.db_name = db_name
@@ -42,7 +43,7 @@ class RecipesDB:
                     Unit TEXT
                 );
             """)
-    
+
             self.cursor.execute("""
                 CREATE TABLE IF NOT EXISTS Recipes (
                     R_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,7 +51,7 @@ class RecipesDB:
                     Instructions TEXT
                 );
             """)
-    
+
             self.cursor.execute("""
                 CREATE TABLE IF NOT EXISTS Recipes_ingredients (
                     RI_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,14 +62,14 @@ class RecipesDB:
                     FOREIGN KEY (Ingredient_id) REFERENCES Ingredients(I_id)
                 );
             """)
-    
+
             self.cursor.execute("""
                 CREATE TABLE IF NOT EXISTS Tags (
                     T_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     T_name TEXT NOT NULL UNIQUE
                 );
             """)
-    
+
             self.cursor.execute("""
                 CREATE TABLE IF NOT EXISTS Recipe_tags (
                     RT_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,9 +80,9 @@ class RecipesDB:
                     FOREIGN KEY (Tag_id) REFERENCES Tags(T_id) ON DELETE CASCADE
                 );
             """)
-    
+
             self.conn.commit()
-    
+
             return True
 
         except sqlite3.Error as e:
@@ -94,7 +95,7 @@ class RecipesDB:
     def add_ingredient(self, name, unit):
         if not self.ready:
             return 0
-        
+
         # SQLite 3.35.0+
         self.cursor.execute("""
             INSERT INTO Ingredients (I_name, Unit) VALUES (?, ?)
@@ -109,15 +110,15 @@ class RecipesDB:
     def get_ingredient_id(self, name):
         if not self.ready:
             return 0
-            
+
         self.cursor.execute("SELECT I_id FROM Ingredients WHERE I_name = ?;", (name,))
         i_id = self.cursor.fetchone()
         return i_id[0] if i_id else 0
-    
+
     def add_tag(self, name):
         if not self.ready:
             return 0
-        
+
         # SQLite 3.35.0+
         self.cursor.execute("""
             INSERT INTO Tags (T_name) VALUES (?)
@@ -132,19 +133,19 @@ class RecipesDB:
     def get_tag_id(self, name):
         if not self.ready:
             return 0
-            
+
         self.cursor.execute("SELECT T_id FROM Tags WHERE T_name = ?;", (name,))
         tag_id = self.cursor.fetchone()
         return tag_id[0] if tag_id else 0
-    
+
     def set_tag_for_recipe(self, recipe_id, tag_name):
         if not self.ready:
             return 0
-            
+
         tag_id = self.get_tag_id(tag_name)
         if tag_id <= 0:
             tag_id = self.add_tag(tag_name)
-            
+
         # SQLite 3.35.0+
         self.cursor.execute("""
             INSERT INTO Recipe_tags (Recipe_id, Tag_id) 
@@ -154,7 +155,7 @@ class RecipesDB:
             )
             ON CONFLICT(Recipe_id, Tag_id) DO UPDATE SET Recipe_id = excluded.Recipe_id
             RETURNING RT_id;""",
-            (recipe_id, tag_id, recipe_id))
+                            (recipe_id, tag_id, recipe_id))
         rt_id = self.cursor.fetchone()
         self.conn.commit()
 
@@ -163,11 +164,11 @@ class RecipesDB:
     def set_ingredient_for_recipe(self, recipe_id, ingredient_name, ingredient_unit, ingredient_quantity):
         if not self.ready:
             return 0
-        
+
         ingredient_id = self.get_ingredient_id(ingredient_name)
         if ingredient_id <= 0:
             ingredient_id = self.add_ingredient(ingredient_name, ingredient_unit)
-            
+
         # SQLite 3.35.0+
         self.cursor.execute("""
             INSERT INTO Recipes_ingredients (Recipe_id, Ingredient_id, Quantity)
@@ -176,19 +177,19 @@ class RecipesDB:
                 SELECT 1 FROM Recipes WHERE R_id = ?
             )
             RETURNING RI_id;""",
-            (recipe_id, ingredient_id, ingredient_quantity, recipe_id))
+                            (recipe_id, ingredient_id, ingredient_quantity, recipe_id))
         ri_id = self.cursor.fetchone()
         self.conn.commit()
 
         return ri_id[0] if ri_id else 0
-        
+
     def add_recipe(self, recipe_details):
         if not self.ready:
             return 0
-        
+
         self.cursor.execute("INSERT INTO Recipes (Title, Instructions) VALUES (?, ?);",
-            (recipe_details['title'], recipe_details['description']))
-        
+                            (recipe_details['title'], recipe_details['description']))
+
         recipe_id = self.cursor.lastrowid
 
         for ingredient in recipe_details['ingredients']:
@@ -204,7 +205,7 @@ class RecipesDB:
     def delete_recipe(self, recipe_id):
         if not self.ready:
             return 0
-        
+
         # SQLite 3.35.0+
         self.cursor.execute("DELETE FROM Recipes WHERE R_id = ? RETURNING R_id;", (recipe_id,))
         r_id = self.cursor.fetchone()
@@ -215,7 +216,7 @@ class RecipesDB:
     def delete_ingredient(self, ingredient_id):
         if not self.ready:
             return 0
-            
+
         # SQLite 3.35.0+
         self.cursor.execute("""
             DELETE FROM Ingredients 
@@ -232,7 +233,7 @@ class RecipesDB:
     def delete_tag(self, tag_id):
         if not self.ready:
             return 0
-            
+
         # SQLite 3.35.0+
         self.cursor.execute("""
             DELETE FROM Tags 
@@ -249,7 +250,7 @@ class RecipesDB:
     def get_simple_recipes(self, filters):
         if not self.ready:
             return None
-        
+
         has_tags = bool(filters['tags'])
         has_ingredients = bool(filters['ingredients'])
 
@@ -283,30 +284,30 @@ class RecipesDB:
                 )
                 """)
             params.extend(filters['tags'])
-        
+
         if where:
             query += " WHERE " + " AND ".join(where)
-        
+
         self.cursor.execute(query, params)
         return [{'id': row[0], 'name': row[1]} for row in self.cursor.fetchall()]
-    
+
     def update_recipe(self, what_to_update, recipe_id, recipe_details):
         if not self.ready:
             return 0
-        
+
         if what_to_update['info']:
             self.cursor.execute("""
                 UPDATE Recipes
                 SET Title = ?, Instructions = ?
                 WHERE R_id = ?
                 """, (recipe_details['title'], recipe_details['description'], recipe_id))
-            
+
         if what_to_update['tags']:
             self.cursor.execute("""
                 DELETE FROM Recipe_tags
                 WHERE Recipe_id = ?
                 """, (recipe_id,))
-            
+
             for tag in recipe_details['tags']:
                 self.set_tag_for_recipe(recipe_id, tag)
 
@@ -315,7 +316,7 @@ class RecipesDB:
                 DELETE FROM Recipes_ingredients
                 WHERE Recipe_id = ?
                 """, (recipe_id,))
-            
+
             for ingredient in recipe_details['ingredients']:
                 self.set_ingredient_for_recipe(recipe_id, ingredient['name'], ingredient['unit'], ingredient['amount'])
 
@@ -326,7 +327,7 @@ class RecipesDB:
     def update_tag(self, tag_id, tag_name):
         if not self.ready:
             return 0
-        
+
         self.cursor.execute("""
                 UPDATE Tags
                 SET T_name = ?
@@ -339,7 +340,7 @@ class RecipesDB:
     def update_ingredient(self, ingredient_id, ingredient_name, ingredient_unit):
         if not self.ready:
             return 0
-        
+
         self.cursor.execute("""
                 UPDATE Ingredients
                 SET I_name = ?, Unit = ?
@@ -352,21 +353,21 @@ class RecipesDB:
     def get_list_of_tags(self):
         if not self.ready:
             return None
-        
+
         self.cursor.execute("SELECT T_id, T_name FROM Tags")
         return [{'id': row[0], 'name': row[1]} for row in self.cursor.fetchall()]
-    
+
     def get_list_of_ingredients(self):
         if not self.ready:
             return None
-        
+
         self.cursor.execute("SELECT I_id, I_name, Unit FROM Ingredients")
         return [{'id': row[0], 'name': row[1], 'unit': row[2]} for row in self.cursor.fetchall()]
-    
+
     def get_recipe_details(self, recipe_id):
         if not self.ready:
             return None
-        
+
         self.cursor.execute("""
             SELECT Title, Instructions
             FROM Recipes
@@ -376,10 +377,10 @@ class RecipesDB:
 
         if not row:
             return None
-        
+
         recipe_details = {
             'id': recipe_id,
-            'title' : row[0],
+            'title': row[0],
             'description': row[1],
             'ingredients': [],
             'tags': []
@@ -392,7 +393,7 @@ class RecipesDB:
             WHERE Recipes_ingredients.Recipe_id = ?
             """, (recipe_id,))
         recipe_details['ingredients'] = [
-            {'name': name, 'amount': amount, 'unit': unit} 
+            {'name': name, 'amount': amount, 'unit': unit}
             for name, amount, unit in self.cursor.fetchall()
         ]
 
@@ -405,7 +406,7 @@ class RecipesDB:
         recipe_details['tags'] = [row[0] for row in self.cursor.fetchall()]
 
         return recipe_details
-                
+
     def test_structure(self):
         print("Tables")
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -453,14 +454,12 @@ class RecipesDB:
             for row in rows:
                 print(row)
 
-
-#--------------TU DODAJĘ METODY DO STATYSTYK ~Ala----------------------------
-
+    # --------------TU DODAJĘ METODY DO STATYSTYK ~Ala----------------------------
 
     def count_recipes_by_difficulty(self):
         if not self.ready:
             return None
-    
+
         self.cursor.execute("""
             SELECT Tags.T_name, COUNT(Recipe_tags.Recipe_id) AS recipe_count
             FROM Tags
@@ -468,14 +467,14 @@ class RecipesDB:
             WHERE Tags.T_name IN ('#latwe', '#srednie', '#trudne')
             GROUP BY Tags.T_name;
         """)
-        
+
         results = self.cursor.fetchall()
-        return{row[0]: row[1] for row in results}
-    
+        return {row[0]: row[1] for row in results}
+
     def count_recipes_by_meal(self):
         if not self.ready:
             return None
-    
+
         self.cursor.execute("""
             SELECT Tags.T_name, COUNT(Recipe_tags.Recipe_id) AS recipe_count
             FROM Tags
@@ -483,10 +482,9 @@ class RecipesDB:
             WHERE Tags.T_name IN ('#sniadanie', '#obiad', '#kolacja', '#deser')
             GROUP BY Tags.T_name;
         """)
-        
+
         results = self.cursor.fetchall()
-        return{row[0]: row[1] for row in results}
-    
+        return {row[0]: row[1] for row in results}
 
     def count_ingredients_usage(self):
         if not self.ready:
@@ -502,4 +500,3 @@ class RecipesDB:
 
         results = self.cursor.fetchall()
         return {row[0]: row[1] for row in results}
-
