@@ -1,60 +1,60 @@
-# Ksiazka_z_przepisami — Aplikacja Desktopowa do Zarządzania Przepisami
+# Recipe_Book — Desktop Application for Managing Recipes
 
-**Ksiazka_z_przepisami** to prosta i funkcjonalna aplikacja desktopowa umożliwiająca przechowywanie, importowanie oraz eksportowanie przepisów kulinarnych. Idealna dla każdego, kto lubi gotować i chce mieć swoje przepisy w jednym miejscu.
+Recipe Book is functional desktop application that allows you to store, import, and export cooking recipes. Perfect for anyone who enjoys cooking and wants to keep their recipes organized in one place.
 
-## Funkcje
+## Features
 
-- Przeglądanie zapisanych wcześniej przepisów
-- Import przepisów z plików `.txt`
-- Eksport przepisów do formatu gotowego do druku
-- Tworzenie listy zakupów na podstawie przepisu
-- Przechowywanie przepisów oraz składników w lokalnej bazie danych SQLite
-- Wyświetlane statystyk dotyczących różnego rodzaju przepisów oraz używanych składników
-- Intuicyjny interfejs graficzny stworzony z użyciem PySide6
+- Browse previously saved recipes
+- Import recipes from .txt files
+- Export recipes to a print-friendly format
+- Generate a shopping list based on a recipe
+- Store recipes and ingredients in a local SQLite database
+- View statistics about different types of recipes and used ingredients
+- Intuitive graphical user interface built with PySide6
 
-## Wymagania
+## Requirements
 
 - Python 3.8+
 - PySide6
-- SQLite (domyślnie wbudowany w Pythona)
+- SQLite
 
-## Instalacja
+## Installation
 
-1. Sklonuj repozytorium:
+1. Clone the repository:
 
 ```bash
 git clone https://github.com/alicjaala/Ksiazka_z_przepisami.git
 cd Ksiazka_z_przepisami
 ```
 
-2. Zainstaluj wymagane biblioteki:
+2. Install required libraries:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Uruchom aplikację:
-
+3. Run the application:
+   
 ```bash
 python main.py
 ```
 
-## Technologie
+## Technologies
 
 - Python 3
 - PySide6
 - SQLite
 
-## Kontrybucja
+## Contributing
 
-Jeżeli chcesz pomóc w rozwoju aplikacji:
+If you’d like to help improve the application:
 
-1. Sforkuj repozytorium
-2. Stwórz nową gałąź (git checkout -b nowa-funkcja)
-3. Wprowadź zmiany i zatwierdź (git commit -am 'Dodano nową funkcję')
-4. Wypchnij gałąź (git push origin nowa-funkcja)
-5. Otwórz Pull Request
+1. Fork the repository
+2. Create a new branch (git checkout -b new-feature)
+3. Make your changes and commit them (git commit -am 'Add new feature')
+4. Push the branch (git push origin new-feature)
+5. Open a Pull Request
 
-## Licencja
+## License
 
-Projekt dostępny na licencji MIT. Zobacz plik LICENSE po więcej informacji.
+This project is licensed under the MIT License. See the LICENSE file for more details.
