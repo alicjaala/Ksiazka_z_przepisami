@@ -1,6 +1,5 @@
 import sys
 from PySide6.QtWidgets import *
-from PySide6.QtCore import Qt
 from RecipesDB import RecipesDB
 from RecipeFileHandler import RecipeFileHandler
 from Recipe import Recipe
@@ -77,33 +76,51 @@ class RecipeManager(QWidget):
 
         all_ingredients = self.db.get_list_of_ingredients()
         ingredient_names = [i['name'] for i in all_ingredients]
+        ingredient_names.append("[dodaj nowy składnik]")
 
         ingredients = []
         while True:
-            item, ok = QInputDialog.getItem(self, "składnik", "Wybierz składnik:", ingredient_names, editable=False)
+            item, ok = QInputDialog.getItem(self, "składnik", "wybierz składnik:", ingredient_names, editable=False)
             if not ok or not item:
                 break
 
-            amount, ok = QInputDialog.getDouble(self, "ilość", f"Ile potrzebujesz składnika '{item}'?", 1.0, 0.0)
-            if not ok:
-                continue
+            if item == "[dodaj nowy składnik]":
+                new_name, ok = QInputDialog.getText(self, "nowy składnik", "podaj nazwę nowego składnika:")
+                if not ok or not new_name:
+                    continue
+                if new_name in ingredient_names:
+                    QMessageBox.warning(self, "uwaga", "składnik już istnieje w bazie.")
+                    continue
 
-            unit, ok = QInputDialog.getText(self, "jednostka", f"Podaj jednostkę dla '{item}':")
-            if not (ok and unit):
+                new_unit, ok = QInputDialog.getText(self, "jednostka", f"podaj jednostkę dla '{new_name}':")
+                if not (ok and new_unit):
+                    continue
+
+                self.db.add_ingredient(new_name, new_unit)
+                ingredient_names.insert(-1, new_name)
+                item = new_name
+                unit = new_unit
+            else:
+                unit = next((i['unit'] for i in all_ingredients if i['name'] == item), "")
+
+            amount, ok = QInputDialog.getDouble(self, "ilość", f"ile potrzebujesz składnika '{item}'?", 1.0, 0.0)
+            #moze defalut value zmienic bo dla sztuk goofy
+            if not ok:
                 continue
 
             ingredients.append({'name': item, 'amount': amount, 'unit': unit})
 
-            more, ok = QInputDialog.getItem(self, "dodaj więcej?", "Dodać kolejny składnik?", ["Tak", "Nie"], editable=False)
+            more, ok = QInputDialog.getItem(self, "dodaj więcej?", "dodać kolejny składnik?", ["Tak", "Nie"],
+                                            editable=False)
             if not ok or more == "Nie":
                 break
 
         if not ingredients:
-            QMessageBox.warning(self, "Brak składników", "Przepis nie został dodany — brak składników.")
+            QMessageBox.warning(self, "brak składników", "przepis nie został dodany — brak składników.")
             return
 
-        desc, _ = QInputDialog.getMultiLineText(self, "opis", "Podaj opis przygotowania:")
-        tags_text, _ = QInputDialog.getText(self, "tagi", "Podaj tagi (oddzielone spacją):")
+        desc, _ = QInputDialog.getMultiLineText(self, "opis", "podaj opis przygotowania:")
+        tags_text, _ = QInputDialog.getText(self, "tagi", "podaj tagi (oddzielone spacją):")
         tags = tags_text.strip().split() if tags_text else []
 
         recipe_dict = {
@@ -114,11 +131,11 @@ class RecipeManager(QWidget):
         }
 
         self.db.add_recipe(recipe_dict)
-        QMessageBox.information(self, "Sukces", "Przepis dodany do bazy danych.")
+        QMessageBox.information(self, "Sukces", "przepis dodany do bazy danych.")
         self.load_recipes()
 
     def import_recipe(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Wybierz plik z przepisem", filter="*.txt")
+        path, _ = QFileDialog.getOpenFileName(self, "wybierz plik z przepisem", filter="*.txt")
         if not path:
             return
         try:
@@ -130,10 +147,10 @@ class RecipeManager(QWidget):
                 "ingredients": recipe.ingredients
             }
             self.db.add_recipe(recipe_dict)
-            QMessageBox.information(self, "Dodano", "Przepis zaimportowany do bazy.")
+            QMessageBox.information(self, "dodano", "przepis zaimportowany do bazy.")
             self.load_recipes()
         except Exception as e:
-            QMessageBox.critical(self, "Błąd", str(e))
+            QMessageBox.critical(self, "błąd", str(e))
 
     def save_recipe_to_file(self):
         current_item = self.recipe_list.currentItem()
@@ -150,11 +167,11 @@ class RecipeManager(QWidget):
             ingredients=recipe_data["ingredients"]
         )
 
-        path, _ = QFileDialog.getSaveFileName(self, "Zapisz przepis", filter="*.txt")
+        path, _ = QFileDialog.getSaveFileName(self, "zapisz przepis", filter="*.txt")
         if not path:
             return
         RecipeFileHandler.save_to_file(recipe_obj, path)
-        QMessageBox.information(self, "Zapisano", "Przepis zapisany do pliku.")
+        QMessageBox.information(self, "zapisano", "przepis zapisany do pliku.")
 
     def export_shopping_list(self):
         current_item = self.recipe_list.currentItem()
@@ -164,16 +181,16 @@ class RecipeManager(QWidget):
         recipe_id = self.recipe_ids[index]
         recipe = self.db.get_recipe_details(recipe_id)
 
-        path, _ = QFileDialog.getSaveFileName(self, "Zapisz listę zakupów", filter="*.txt")
+        path, _ = QFileDialog.getSaveFileName(self, "zapisz listę zakupów", filter="*.txt")
         if not path:
             return
 
         with open(path, "w", encoding="utf-8") as f:
-            f.write(f"Lista zakupów do przepisu: {recipe['title']}\n")
+            f.write(f"lista zakupów do przepisu: {recipe['title']}\n")
             for ing in recipe["ingredients"]:
                 f.write(f"- {ing['amount']} {ing['unit']} {ing['name']}\n")
 
-        QMessageBox.information(self, "Zapisano", "Lista zakupów została zapisana.")
+        QMessageBox.information(self, "zapisano", "lista zakupów została zapisana.")
 
     def delete_recipe(self):
         current_item = self.recipe_list.currentItem()
@@ -182,12 +199,10 @@ class RecipeManager(QWidget):
         index = self.recipe_list.row(current_item)
         recipe_id = self.recipe_ids[index]
 
-        confirm = QMessageBox.question(self, "Usuń przepis",
-                                       "Czy na pewno chcesz usunąć ten przepis?",
-                                       QMessageBox.Yes | QMessageBox.No)
+        confirm = QMessageBox.question(self, "usuń przepis","czy na pewno chcesz usunąć ten przepis?", QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
             self.db.delete_recipe(recipe_id)
-            QMessageBox.information(self, "Usunięto", "Przepis został usunięty.")
+            QMessageBox.information(self, "usunięto", "przepis został usunięty.")
             self.load_recipes()
 
     def closeEvent(self, event):
