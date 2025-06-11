@@ -1,4 +1,4 @@
-# Recipe_Book — Desktop Application for Managing Recipes
+# Recipe Book — Desktop Application for Managing Recipes
 
 Recipe Book is functional desktop application that allows you to store, import, and export cooking recipes. Perfect for anyone who enjoys cooking and wants to keep their recipes organized in one place.
 
@@ -56,5 +56,4 @@ If you’d like to help improve the application:
 5. Open a Pull Request
 
 ## License
-
-This project is licensed under the MIT License. See the LICENSE file for more details.
+This project is for educational purposes only.
