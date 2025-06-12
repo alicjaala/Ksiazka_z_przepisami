@@ -3,6 +3,14 @@ from PySide6.QtWidgets import *
 from RecipesDB import RecipesDB
 from RecipeFileHandler import RecipeFileHandler
 from Recipe import Recipe
+from stats import StatsGenerator
+from PySide6.QtGui import QPixmap
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
+from PySide6.QtCore import Qt
+
+
+
 
 
 class RecipeManager(QWidget):
@@ -27,14 +35,19 @@ class RecipeManager(QWidget):
         self.btn_export = QPushButton("eksport listy")
         self.btn_save = QPushButton("zapisz przepis")
         self.btn_delete = QPushButton("usuń przepis")
+        self.btn_stats = QPushButton("pokaż statystyki")
 
         self.btn_add.clicked.connect(self.add_recipe)
         self.btn_import.clicked.connect(self.import_recipe)
         self.btn_export.clicked.connect(self.export_shopping_list)
         self.btn_save.clicked.connect(self.save_recipe_to_file)
         self.btn_delete.clicked.connect(self.delete_recipe)
+        self.btn_stats.clicked.connect(self.show_stats)
 
-        for btn in [self.btn_add, self.btn_import, self.btn_save, self.btn_export, self.btn_delete]:
+
+
+
+        for btn in [self.btn_add, self.btn_import, self.btn_save, self.btn_export, self.btn_delete,self.btn_stats]:
             btn_layout.addWidget(btn)
 
         layout.addLayout(btn_layout)
@@ -46,6 +59,41 @@ class RecipeManager(QWidget):
 
         self.setLayout(layout)
         self.load_recipes()
+
+
+
+    def show_stats(self):
+        stats = StatsGenerator(self.db)
+
+        stats.generate_difficulty_plot()
+        stats.generate_meal_plot()
+        stats.generate_ingredient_usage_plot(top_n=10)
+
+        self.show_image_window('plots/difficulty_plot.png', "Trudność")
+        self.show_image_window('plots/meals_plot.png', "Rodzaj posiłku")
+        self.show_image_window('plots/ingredients_plot.png', "Najczęstsze składniki")
+        # osobno 3 wykresy ze statami
+
+    def show_image_window(self, image_path, title):
+        dialog = QDialog(self)
+        dialog.setWindowTitle(title)
+        layout = QVBoxLayout()
+
+        label = QLabel()
+        pixmap = QPixmap(image_path)
+        if pixmap.isNull():
+            QMessageBox.critical(self, "Błąd", f"Nie udało się załadować wykresu: {image_path}")
+            return
+
+        label.setPixmap(pixmap.scaled(1000, 800))
+        layout.addWidget(label)
+
+        btn_close = QPushButton("Zamknij")
+        btn_close.clicked.connect(dialog.close)
+        layout.addWidget(btn_close)
+
+        dialog.setLayout(layout)
+        dialog.exec()
 
     def load_recipes(self):
         self.recipe_list.clear()
@@ -76,7 +124,7 @@ class RecipeManager(QWidget):
 
         all_ingredients = self.db.get_list_of_ingredients()
         ingredient_names = [i['name'] for i in all_ingredients]
-        ingredient_names.append("[dodaj nowy składnik]")
+        ingredient_names.insert(0, "[dodaj nowy składnik]")
 
         ingredients = []
         while True:
