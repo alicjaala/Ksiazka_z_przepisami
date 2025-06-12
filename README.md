@@ -57,3 +57,5 @@ If you’d like to help improve the application:
 
 ## License
 This project is for educational purposes only.
+
+![Image](https://github.com/user-attachments/assets/6470eb92-1fd2-401b-9968-6076a6e3b63e)
