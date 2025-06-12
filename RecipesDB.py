@@ -500,3 +500,12 @@ class RecipesDB:
 
         results = self.cursor.fetchall()
         return {row[0]: row[1] for row in results}
+
+    def clear_all(self):
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM Ingredients")
+        cursor.execute("DELETE FROM Recipe_tags")
+        cursor.execute("DELETE FROM Recipes")
+        cursor.execute("DELETE FROM Recipes_ingredients")
+        cursor.execute("DELETE FROM Tags")
+        self.conn.commit()
