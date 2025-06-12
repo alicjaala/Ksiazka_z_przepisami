@@ -57,6 +57,3 @@ If you’d like to help improve the application:
 
 ## License
 This project is for educational purposes only.
-
-
-https://cdn.discordapp.com/attachments/800091371351965807/1382720438576091166/snapins-ai_3651408122475568060.jpg?ex=684c2e42&is=684adcc2&hm=ef293932b7bffd2986d172cfc808a89822cc0f4e6fa612f8e5df8321aa3c1ecd&
