@@ -16,9 +16,9 @@ class RecipeManager(QWidget):
         self.recipe_ids = []
         self.init_ui()
 
+
     def init_ui(self):
         layout = QVBoxLayout()
-
         self.recipe_list = QListWidget()
         self.recipe_list.itemClicked.connect(self.display_recipe)
         layout.addWidget(QLabel("Przepisy :"))
@@ -102,11 +102,12 @@ class RecipeManager(QWidget):
         recipe_id = self.recipe_ids[index]
         recipe = self.db.get_recipe_details(recipe_id)
 
-        details = f"Tytuł: {recipe['title']}\n"
+        details = f"Tytuł: {recipe['title']}\n\n"
         details += "składniki:\n"
         for i in recipe['ingredients']:
             details += f"{i['name']} - {i['amount']} {i['unit']}\n"
-        details += "Opis:\n" + recipe['description'] + "\n"
+        details += "\n"
+        details += "Opis:\n" + recipe['description'] + "\n\n"
         if recipe['tags']:
             details += "tagi: " + ", ".join(recipe['tags'])
         self.recipe_view.setPlainText(details)
@@ -144,7 +145,7 @@ class RecipeManager(QWidget):
             else:
                 unit = next((i['unit'] for i in all_ingredients if i['name'] == item), "")
 
-            amount, ok = QInputDialog.getDouble(self, "Ilość", f"Ile potrzebujesz składnika '{item}'?", 1.0, 0.0)
+            amount, ok = QInputDialog.getInt(self, "Ilość", f"Ile potrzebujesz składnika '{item}'?", 1, 0)
             #moze defalut value zmienic bo dla sztuk goofy
             if not ok:
                 continue
@@ -236,8 +237,9 @@ class RecipeManager(QWidget):
         index = self.recipe_list.row(current_item)
         recipe_id = self.recipe_ids[index]
 
-        confirm = QMessageBox.question(self, "Usuń przepis","Czy na pewno chcesz usunąć ten przepis?", QMessageBox.Yes | QMessageBox.No)
-        if confirm == QMessageBox.Yes:
+        more, ok = QInputDialog.getItem(self,"Usuń przepis","Czy na pewno chcesz usunąć ten przepis?",["Tak", "Nie"],editable=False)
+
+        if ok and more == "Tak":
             self.db.delete_recipe(recipe_id)
             QMessageBox.information(self, "Usunięto", "Przepis został usunięty.")
             self.load_recipes()
