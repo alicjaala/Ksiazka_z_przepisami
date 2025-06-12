@@ -1,45 +1,44 @@
-from Recipe import *
-from RecipeFileHandler import *
-from ShoppingListGenerator import *
-import pprint
+from RecipesDB import RecipesDB
+from GUI import RecipeManager
+from PySide6.QtWidgets import QApplication
+import sys
 
-if __name__ == '__main__':
+def main():
+    db = RecipesDB()
 
-    try:
-        recipe = RecipeFileHandler.load_from_file('przepis.txt')
-        print(recipe)
-        RecipeFileHandler.save_to_file(recipe, 'eksport.txt')
-    except RecipeParseError as e:
-        print(f"Błąd parsowania: {e}")
+    if not db.is_ready():
+        print("Baza danych nie gotowa.")
+        return
 
+    print("Lista wszystkich przepisów:")
+    db.print_all()
 
-    recipe_dict = {'description': 'Roztop masło i czekoladę w kąpieli wodnej.\n'
-                'W osobnej misce wymieszaj mąkę, cukier i jajka.\n'
-                'Połącz wszystko razem i piecz w 180°C przez 40 minut.',
-              'ingredients': [{'amount': 200.0, 'name': 'Mąka', 'unit': 'g'},
-                 {'amount': 150.0, 'name': 'Cukier', 'unit': 'g'},
-                 {'amount': 3.0, 'name': 'Jajka', 'unit': 'sztuka'},
-                 {'amount': 100.0, 'name': 'Masło', 'unit': 'g'},
-                 {'amount': 200.0, 'name': 'Czekolada', 'unit': 'g'}],
-              'tags': ['#przepis', '#naslodko', '#zajebisteciasto'],
-              'title': 'Ciasto czekoladowe'}
+    print("\nDodawanie nowego przykładowego przepisu:")
+    new_recipe = {
+        'title': 'Kanapka z serem',
+        'description': 'Posmaruj chleb masłem,   dodaj ser.',
+        'ingredients': [
+            {'amount': 2, 'name': 'Chleb', 'unit': 'kromka'},
+            {'amount': 1, 'name': 'Ser', 'unit': 'plaster'}
+        ],
+        'tags': ['#sniadanie', '#latwe']
+    }
 
-    recipe2_dict = {'description': 'nieistotne',
-              'ingredients': [{'amount': 200.0, 'name': 'Mąka', 'unit': 'g'},
-                              {'amount': 150.0, 'name': 'Cukier trzcinowy', 'unit': 'g'},
-                              {'amount': 3.0, 'name': 'Jajka', 'unit': 'sztuka'},
-                              {'amount': 1.0, 'name': 'Masło', 'unit': 'kostka'},
-                              {'amount': 200.0, 'name': 'Czekolada', 'unit': 'g'}],
-              'title': 'inne ciasto'}
+    print("\nPo dodaniu:")
+    db.print_all()
 
-    recipe_obj = Recipe.from_dict(recipe_dict)
-    recipe2_obj = Recipe.from_dict(recipe2_dict)
+    # db = RecipesDB()
+    # db.clear_all()
+    # db.close_db()
 
-    recipes = []
-    recipes.append(recipe_obj)
-    recipes.append(recipe2_obj)
+    db.close_db()
 
-    ShoppingListGenerator.generate_txt(recipes, 'lista_zakupow.txt')
+    app = QApplication(sys.argv)
+    window = RecipeManager()
+    window.resize(800, 600)
+    window.show()
+    sys.exit(app.exec())
 
 
-
+if __name__ == "__main__":
+    main()

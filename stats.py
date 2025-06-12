@@ -29,7 +29,7 @@ class StatsGenerator:
         filtered_labels, filtered_counts = zip(*filtered)
         colors = [color_palette[labels_order.index(label)] for label in filtered_labels]
 
-        plt.figure(figsize=(7, 7))
+        plt.figure(figsize=(3,3))
         plt.pie(
             filtered_counts,
             labels=filtered_labels,
@@ -52,19 +52,19 @@ class StatsGenerator:
 
         pastel_palette = sns.color_palette("pastel")
 
-        plt.figure(figsize=(12, 7))
+        plt.figure(figsize=(5,4))
         bars = plt.bar(labels, counts, color=pastel_palette[:len(labels)])
 
-        plt.title(title, fontsize=16, weight='bold')
-        plt.xlabel(xlabel, fontsize=12)
-        plt.ylabel(ylabel, fontsize=12)
-        plt.xticks(rotation=45, ha='right', fontsize=10)
-        plt.yticks(fontsize=10)
+        plt.title(title, fontsize=12, weight='bold')
+        plt.xlabel(xlabel, fontsize=8)
+        plt.ylabel(ylabel, fontsize=8)
+        plt.xticks(rotation=45, ha='right', fontsize=6)
+        plt.yticks(fontsize=6)
         plt.ylim(0, max(counts) + 1)
 
         for bar in bars:
             height = bar.get_height()
-            plt.text(bar.get_x() + bar.get_width() / 2, height + 0.1, 
+            plt.text(bar.get_x() + bar.get_width() / 2, height + 0.1,
                      f'{int(height)}', ha='center', va='bottom', fontsize=9)
 
         self._save_plot(filename)
@@ -75,7 +75,7 @@ class StatsGenerator:
             self._draw_pie_chart(
                 data_dict=stats,
                 labels_order=['latwe', 'srednie', 'trudne'],
-                title='Procentowy udział przepisów wg trudności',
+                title='Przepisy wg trudności',
                 filename='difficulty_plot.png',
                 color_palette=["#DE1DAA", "#DE1FF4", "#EAB2D5"]
             )
@@ -86,7 +86,7 @@ class StatsGenerator:
             self._draw_pie_chart(
                 data_dict=stats,
                 labels_order=['sniadanie', 'obiad', 'kolacja', 'deser'],
-                title='Procentowy udział przepisów wg rodzaju posiłku',
+                title='Przepisy wg rodzaju posiłku',
                 filename='meals_plot.png',
                 color_palette=["#DE1DAA", "#DE1FF4", "#EAB2D5", "#ED3573"]
             )
@@ -96,7 +96,7 @@ class StatsGenerator:
             stats = self.db.count_ingredients_usage()
             self._draw_bar_chart(
                 data_dict=stats,
-                title=f'Top {top_n} składników wg liczby przepisów',
+                title=f'Najpopularniejsze {top_n} składników',
                 xlabel='Składnik',
                 ylabel='Liczba przepisów',
                 filename='ingredients_plot.png',

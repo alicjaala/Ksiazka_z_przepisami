@@ -6,6 +6,7 @@ from RecipeFileHandler import *
 from Recipe import *
 from stats import *
 from PySide6.QtGui import QPixmap
+from PySide6.QtGui import *
 
 
 class RecipeManager(QWidget):
@@ -145,7 +146,7 @@ class RecipeManager(QWidget):
             else:
                 unit = next((i['unit'] for i in all_ingredients if i['name'] == item), "")
 
-            amount, ok = QInputDialog.getInt(self, "Ilość", f"Ile potrzebujesz składnika '{item}'?", 1, 0)
+            amount, ok = QInputDialog.getDouble(self, "Ilość", f"Ile potrzebujesz składnika '{item}'?", 1, 0)
             #moze defalut value zmienic bo dla sztuk goofy
             if not ok:
                 continue
@@ -267,9 +268,7 @@ class RecipeManager(QWidget):
             btn_close = QPushButton("Zamknij")
             btn_close.clicked.connect(dialog.close)
             layout.addWidget(btn_close)
-
             dialog.setLayout(layout)
-            dialog.resize(1020, 860)
             dialog.exec()
 
     def closeEvent(self, event):
